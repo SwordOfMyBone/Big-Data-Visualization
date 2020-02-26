@@ -6,11 +6,11 @@ import netCDF4
 
 
 #load x and y data from netCDF file
-ncFile = netCDF4.Dataset('../Model Combined/o3_surface_20180701000000.nc')
+ncFile = netCDF4.Dataset('./Model Combined/o3_surface_20180701000000.nc')
 x = ncFile.variables['lat'][:-2]
 y = ncFile.variables['lon'][:-2]
 #read z data from csv file
-data = np.genfromtxt('24hour/24HR_Orig_01.csv',delimiter = ',')
+data = np.genfromtxt('./24hour/24HR_Orig_01.csv',delimiter = ',')
 data = np.array(data)
 data = np.transpose(data,(1,0))
 
