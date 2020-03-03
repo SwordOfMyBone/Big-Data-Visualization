@@ -1,32 +1,53 @@
 from mpl_toolkits.basemap import Basemap
 import numpy as np
 import matplotlib.pyplot as plt
-import csv
 import netCDF4
+import glob
+from modules import calc
 
 
-#load x and y data from netCDF file
-ncFile = netCDF4.Dataset('./Model Combined/o3_surface_20180701000000.nc')
-x = ncFile.variables['lat'][:-2]
-y = ncFile.variables['lon'][:-2]
-#read z data from csv file
-data = np.genfromtxt('./24hour/24HR_Orig_01.csv',delimiter = ',')
-data = np.array(data)
-data = np.transpose(data,(1,0))
 
+# load x (longitude) and y (latitude) data from combined model netCDF file.
+ncFile = netCDF4.Dataset('./data/Model Combined/o3_surface_20180701000000.nc')
+x = ncFile.variables['lon'][:-2]
+y = ncFile.variables['lat'][:-2]
+ncFile.close()
 
+# read z data from csv files and calc mean for each data point.
+pathList = glob.glob("./data/24Hour/24HR_CBE_*.csv") # Creates a list of paths using globbing.
+data = calc.calcMean(pathList)  
+
+# Creates a meshgrid with the same dimensions as the data so that it can be plotted.
 xx, yy = np.meshgrid(x, y)
+
+# Create two subplots
+fig, (ax1, ax2) = plt.subplots(1,2)
+
+# Create the Basemap using matplotlib. 
 # llcrnrlat,llcrnrlon,urcrnrlat,urcrnrlon
 # are the lat/lon values of the lower left and upper right corners
 # of the map.
 # resolution = 'c' means use crude resolution coastlines.
-#m = Basemap(projection='mill',llcrnrlat=25,urcrnrlat=75,llcrnrlon=-35,urcrnrlon=30,resolution='c')
-m = Basemap(projection='mill',llcrnrlat=-90,urcrnrlat=90,\
-            llcrnrlon=-180,urcrnrlon=180,resolution='c')
+ax1.set_title("Cluster Based Ensemble Mean")
+m = Basemap(projection='mill',llcrnrlat=31,urcrnrlat=70,\
+            llcrnrlon=-25,urcrnrlon=45,resolution='l', ax=ax1)
+
+#Convert to map projection cord.
+xx, yy = m(xx, yy)
 m.drawcoastlines()
-x,y = m(yy,xx)
-plt.contourf(x,y,data,10)
-plt.colorbar()
-#plt.scatter(x,y)
-plt.title("Data visualization")
-plt.show()
+cont = m.contourf(xx, yy, data, 10,cmap = "inferno",alpha = 0.8)
+m.colorbar(cont, location = "bottom")
+
+
+
+#setup other basemap
+pathList = glob.glob("./data/24Hour/24HR_Orig_*.csv") 
+data2 = calc.calcMean(pathList)  
+m2 = Basemap(projection='mill',llcrnrlat=31,urcrnrlat=70,\
+            llcrnrlon=-25,urcrnrlon=45,resolution='l', ax=ax2)
+m2.drawcoastlines()
+cont2 = m2.contourf(xx, yy, data2,10,cmap = "inferno",alpha = 0.8)
+m2.colorbar(cont2, location = "bottom")
+ax2.set_title("Original Dataset Mean over 24 Hours")
+
+plt.tight_layout()
