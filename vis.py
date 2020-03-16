@@ -6,7 +6,6 @@ import glob
 from modules import calc
 
 
-
 # load x (longitude) and y (latitude) data from combined model netCDF file.
 ncFile = netCDF4.Dataset('./data/Model Combined/o3_surface_20180701000000.nc')
 x = ncFile.variables['lon'][:-2]
@@ -16,7 +15,7 @@ ncFile.close()
 # read z data from csv files and calc mean for each data point.
 pathList = glob.glob("./data/24Hour/24HR_CBE_*.csv") # Creates a list of paths using globbing.
 data = calc.calcMean(pathList)  
-
+print(data.size)
 # Creates a meshgrid with the same dimensions as the data so that it can be plotted.
 xx, yy = np.meshgrid(x, y)
 
@@ -30,14 +29,14 @@ fig, (ax1, ax2) = plt.subplots(1,2)
 # resolution = 'c' means use crude resolution coastlines.
 ax1.set_title("Cluster Based Ensemble Mean")
 m = Basemap(projection='mill',llcrnrlat=31,urcrnrlat=70,\
-            llcrnrlon=-25,urcrnrlon=45,resolution='l', ax=ax1)
+            llcrnrlon=-25,urcrnrlon=44,resolution='l', ax=ax1)
 
 #Convert to map projection cord.
 xx, yy = m(xx, yy)
+
 m.drawcoastlines()
 cont = m.contourf(xx, yy, data, 10,cmap = "inferno",alpha = 0.8)
 m.colorbar(cont, location = "bottom")
-
 
 
 #setup other basemap
@@ -51,3 +50,4 @@ m2.colorbar(cont2, location = "bottom")
 ax2.set_title("Original Dataset Mean over 24 Hours")
 
 plt.tight_layout()
+plt.show()
